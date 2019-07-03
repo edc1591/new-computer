@@ -72,6 +72,18 @@ fi
 sudo -v
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
+##############################
+# Prerequisite: Install RVM #
+##############################
+
+echo "Installing rvm..."
+
+if test ! $(which rvm)
+then
+  ## Don't prompt for confirmation when installing rvm
+  /usr/bin/ruby -e "$(curl -sSL https://get.rvm.io | bash -s stable --ruby)" < /dev/null
+fi
+
 
 ##############################
 # Prerequisite: Install Brew #
@@ -154,12 +166,21 @@ done
 
 [[ $retries -eq i ]] && echo "Adding ssh-key to GitHub failed! Try again later."
 
+##############################
+# Install via gem            #
+##############################
+
+gem install bundler
+gem install cocoapods
+gem install fastlane
 
 ##############################
 # Install via Brew           #
 ##############################
 
 echo "Starting brew app install..."
+
+brew cask install --appdir="/Applications" ${apps[@]}
 
 brew install mackup
 
@@ -176,6 +197,8 @@ brew cask install transmit
 ### Development
 brew install postgresql
 brew install redis
+brew install node
+brew install carthage
 
 
 ### Command line tools - install new ones, update others to latest version
@@ -202,6 +225,7 @@ brew cask install rescuetime
 brew cask install viscosity
 brew cask install istat-menus
 brew cask install fantastical
+brew cask install authy
 
 
 ### Quicklook plugins https://github.com/sindresorhus/quick-look-plugins
@@ -258,12 +282,96 @@ else
 fi
 
 ###############################################################################
-# Photos                                                                      #
+# System Settings                                                             #
 ###############################################################################
+
+#"Disabling OS X Gate Keeper"
+#"(You'll be able to install any app you want from here on, not just Mac App Store apps)"
+sudo spctl --master-disable
+sudo defaults write /var/db/SystemPolicy-prefs.plist enabled -string no
+defaults write com.apple.LaunchServices LSQuarantine -bool false
+
+#"Allow text selection in Quick Look"
+defaults write com.apple.finder QLEnableTextSelection -bool TRUE
+
+#"Expanding the save panel by default"
+defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
+
+#"Automatically quit printer app once the print jobs complete"
+defaults write com.apple.print.PrintingPrefs "Quit When Finished" -bool true
+
+#"Setting trackpad & mouse speed to a reasonable number"
+defaults write -g com.apple.trackpad.scaling 1.5
+
+#"Showing icons for hard drives, servers, and removable media on the desktop"
+defaults write com.apple.finder ShowExternalHardDrivesOnDesktop -bool true
+
+#"Showing all filename extensions in Finder by default"
+defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+
+#"Disabling the warning when changing a file extension"
+defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
+
+#"Enabling snap-to-grid for icons on the desktop and in other icon views"
+/usr/libexec/PlistBuddy -c "Set :DesktopViewSettings:IconViewSettings:arrangeBy grid" ~/Library/Preferences/com.apple.finder.plist
+/usr/libexec/PlistBuddy -c "Set :FK_StandardViewSettings:IconViewSettings:arrangeBy grid" ~/Library/Preferences/com.apple.finder.plist
+/usr/libexec/PlistBuddy -c "Set :StandardViewSettings:IconViewSettings:arrangeBy grid" ~/Library/Preferences/com.apple.finder.plist
+
+#"Setting the icon size of Dock items to 52 pixels"
+defaults write com.apple.dock tilesize -int 52
+
+#"Setting Dock settings"
+defaults write com.apple.dock autohide -bool false
+defaults write com.apple.dock largesize -int 97
+defaults write com.apple.dock magnification -int 1
+defaults write com.apple.dock tilesize -int 51
+
+#"Setting screenshots location to ~/Desktop"
+defaults write com.apple.screencapture location -string "$HOME/Desktop"
+
+#"Setting screenshot format to PNG"
+defaults write com.apple.screencapture type -string "png"
+
+#"Hiding Safari's bookmarks bar by default"
+defaults write com.apple.Safari ShowFavoritesBar -bool true
+
+#"Enabling the Develop menu and the Web Inspector in Safari"
+defaults write com.apple.Safari IncludeDevelopMenu -bool true
+defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true
+defaults write com.apple.Safari "com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled" -bool true
+
+# Don’t automatically rearrange Spaces based on most recent use
+defaults write com.apple.dock mru-spaces -bool false
+
+# Trackpad: enable tap to click for this user and for the login screen
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+
+# Reveal IP address, hostname, OS version, etc. when clicking the clock in the login window
+sudo defaults write /Library/Preferences/com.apple.loginwindow AdminHostInfo HostName
+
+# Use list view in all Finder windows by default (codes for the other view modes: `icnv`, `clmv`, `Flwv`)
+defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
 
 # Prevent Photos from opening automatically when devices are plugged in
 defaults -currentHost write com.apple.ImageCapture disableHotPlug -bool true
 
+defaults write com.apple.dock persistent-apps -array "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/App Store.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Safari.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/iTunes.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Xcode.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Sublime Text.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/iTerm.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Paw.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Tower.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Transmit.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Sketch.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Tweetbot.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Spark.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Messages.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Slack.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Reeder.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/System Preferences.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
+
+killall Dock
+
+###############################################################################
+# Restore Settings                                                            #
+###############################################################################
+
+echo -n "Login to Synology Drive. Enter (y) once the Sync folder has downloaded."
+read response
+if [ "$response" != "${response#[Yy]}" ] ;then
+    mackup restore -f
+fi
 
 
 echo ""
