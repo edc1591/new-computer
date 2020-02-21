@@ -40,16 +40,6 @@ cecho() {
   return
 }
 
-echo ""
-cecho "###############################################" $red
-cecho "#        DO NOT RUN THIS SCRIPT BLINDLY       #" $red
-cecho "#         YOU'LL PROBABLY REGRET IT...        #" $red
-cecho "#                                             #" $red
-cecho "#              READ IT THOROUGHLY             #" $red
-cecho "#         AND EDIT TO SUIT YOUR NEEDS         #" $red
-cecho "###############################################" $red
-echo ""
-
 # Set continue to false by default.
 CONTINUE=false
 
@@ -72,18 +62,6 @@ fi
 sudo -v
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
-##############################
-# Prerequisite: Install RVM #
-##############################
-
-echo "Installing rvm..."
-
-if test ! $(which rvm)
-then
-  ## Don't prompt for confirmation when installing rvm
-  /usr/bin/ruby -e "$(curl -sSL https://get.rvm.io | bash -s stable --ruby)" < /dev/null
-fi
-
 
 ##############################
 # Prerequisite: Install Brew #
@@ -104,67 +82,68 @@ brew tap caskroom/cask
 brew tap homebrew/cask-drivers
 
 
+##############################
+# Prerequisite: Install rbenv #
+##############################
+
+echo "Installing rbenv..."
+
+if test ! $(which rbenv)
+then
+  brew install rbenv
+fi
+
+##############################
+# Prerequisite: Install nvm #
+##############################
+
+echo "Installing nvm..."
+
+if test ! $(which nvm)
+then
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash
+fi
+
+
+##############################
+# Prerequisite: Install mackup #
+##############################
+
+echo "Installing mackup..."
+
+if test ! $(which mackup)
+then
+  brew install mackup
+fi
+
+mackup restore
+
+
 #############################################
-### Generate ssh keys & add to ssh-agent
+### Add ssh keys to ssh-agent
 ### See: https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/
 #############################################
 
-echo "Generating ssh keys, adding to ssh-agent..."
-read -p 'Input email for ssh key: ' useremail
-
-echo "Use default ssh file location, enter a passphrase: "
-ssh-keygen -t rsa -b 4096 -C "$useremail"  # will prompt for password
-eval "$(ssh-agent -s)"
-
 # Now that sshconfig is synced add key to ssh-agent and
 # store passphrase in keychain
-ssh-add -K ~/.ssh/id_rsa
+ssh-add -K ~/.ssh/*[^.pub]
 
 # If you're using macOS Sierra 10.12.2 or later, you will need to modify your ~/.ssh/config file to automatically load keys into the ssh-agent and store passphrases in your keychain.
 
 if [ -e ~/.ssh/config ]
 then
-    echo "ssh config already exists. Skipping adding osx specific settings... "
-else
-	echo "Writing osx specific settings to ssh config... "
+  rm ~/.ssh/config
+fi
+
+for filename in ~/.ssh/*[^.pub]; do
+	echo "Writing osx specific settings to ssh config for $filename... "
    cat <<EOT >> ~/.ssh/config
 	Host *
 		AddKeysToAgent yes
 		UseKeychain yes
-		IdentityFile ~/.ssh/id_rsa
+		IdentityFile $filename
 EOT
-fi
-
-#############################################
-### Add ssh-key to GitHub via api
-#############################################
-
-echo "Adding ssh-key to GitHub (via api)..."
-echo "Important! For this step, use a github personal token with the admin:public_key permission."
-echo "If you don't have one, create it here: https://github.com/settings/tokens/new"
-
-retries=3
-SSH_KEY=`cat ~/.ssh/id_rsa.pub`
-
-for ((i=0; i<retries; i++)); do
-      read -p 'GitHub username: ' ghusername
-      read -p 'Machine name: ' ghtitle
-      read -sp 'GitHub personal token: ' ghtoken
-
-      gh_status_code=$(curl -o /dev/null -s -w "%{http_code}\n" -u "$ghusername:$ghtoken" -d '{"title":"'$ghtitle'","key":"'"$SSH_KEY"'"}' 'https://api.github.com/user/keys')
-
-      if (( $gh_status_code -eq == 201))
-      then
-          echo "GitHub ssh key added successfully!"
-          break
-      else
-			echo "Something went wrong. Enter your credentials and try again..."
-     		echo -n "Status code returned: "
-     		echo $gh_status_code
-      fi
 done
-
-[[ $retries -eq i ]] && echo "Adding ssh-key to GitHub failed! Try again later."
 
 ##############################
 # Install via gem            #
@@ -178,107 +157,111 @@ gem install fastlane
 # Install via Brew           #
 ##############################
 
-echo "Starting brew app install..."
+read -p "Install homebrew packages? (y/N) " -n 1 -r
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+  echo "Starting brew app install..."
 
-brew cask install --appdir="/Applications" ${apps[@]}
+  brew cask install --appdir="/Applications" ${apps[@]}
 
-brew install mackup
-
-### Developer Tools
-brew cask install iterm2
-brew cask install paw
-brew cask install tower
-brew cask install charles
-brew cask install sublime-text
-brew cask install sketch
-brew cask install transmit
-
-
-### Development
-brew install postgresql
-brew install redis
-brew install node
-brew install carthage
+  ### Developer Tools
+  brew cask install iterm2
+  brew cask install paw
+  brew cask install tower
+  brew cask install charles
+  brew cask install sublime-text
+  brew cask install sketch
+  brew cask install transmit
 
 
-### Command line tools - install new ones, update others to latest version
-brew install git  # upgrade to latest
-brew install git-lfs # track large files in git https://github.com/git-lfs/git-lfs
-brew install wget
-brew install trash  # move to osx trash instead of rm
-brew install less
+  ### Development
+  brew install postgresql
+  brew install redis
+  brew install carthage
 
 
-### Writing
-brew cask install macdown
+  ### Command line tools - install new ones, update others to latest version
+  brew install git  # upgrade to latest
+  brew install git-lfs # track large files in git https://github.com/git-lfs/git-lfs
+  brew install wget
+  brew install trash  # move to osx trash instead of rm
+  brew install less
 
 
-### Productivity
-brew cask install google-chrome
-brew cask install alfred
-brew cask install synology-drive
-brew cask install flux
-brew cask install bettertouchtool
-brew cask install 1password
-brew cask install bartender
-brew cask install rescuetime
-brew cask install viscosity
-brew cask install istat-menus
-brew cask install fantastical
-brew cask install authy
+  ### Writing
+  brew cask install macdown
 
 
-### Quicklook plugins https://github.com/sindresorhus/quick-look-plugins
-brew cask install qlcolorcode # syntax highlighting in preview
-brew cask install qlstephen  # preview plaintext files without extension
-brew cask install qlmarkdown  # preview markdown files
-brew cask install quicklook-json  # preview json files
-brew cask install quicklook-csv  # preview csvs
+  ### Productivity
+  brew cask install google-chrome
+  brew cask install alfred
+  brew cask install nextcloud
+  brew cask install flux
+  brew cask install bettertouchtool
+  brew cask install 1password
+  brew cask install bartender
+  brew cask install rescuetime
+  brew cask install viscosity
+  brew cask install istat-menus
+  brew cask install fantastical
+  brew cask install authy
 
 
-### Chat / Video Conference
-brew cask install slack
-brew cask install zoomus
-brew cask install signal
+  ### Quicklook plugins https://github.com/sindresorhus/quick-look-plugins
+  brew cask install qlcolorcode # syntax highlighting in preview
+  brew cask install qlstephen  # preview plaintext files without extension
+  brew cask install qlmarkdown  # preview markdown files
+  brew cask install quicklook-json  # preview json files
+  brew cask install quicklook-csv  # preview csvs
 
 
-### Music and Video
-brew cask install vlc
+  ### Chat / Video Conference
+  brew cask install slack
+  brew cask install zoomus
+  brew cask install signal
 
 
-### Run Brew Cleanup
-brew cleanup
+  ### Music and Video
+  brew cask install vlc
 
+
+  ### Run Brew Cleanup
+  brew cleanup
+fi
 
 #############################################
 ### Installs from Mac App Store
 #############################################
 
-echo "Installing apps from the App Store..."
-
-### find app ids with: mas search "app name"
-brew install mas
-
-### Mas login is currently broken on mojave. See:
-### Login manually for now.
-
-cecho "Need to log in to App Store manually to install apps with mas...." $red
-echo "Opening App Store. Please login."
-open "/Applications/App Store.app"
-echo "Is app store login complete.(y/n)? "
-read response
-if [ "$response" != "${response#[Yy]}" ]
+read -p "Install Mac App Store apps? (y/N) " -n 1 -r
+if [[ $REPLY =~ ^[Yy]$ ]]
 then
-	mas install 425424353   # The Unarchiver
-	mas install 937984704   # Amphetamine
-	mas install 407963104   # Pixelmator
-	mas install 429449079   # Patterns
-	mas install 1384080005  # Tweetbot
-  mas install 880001334   # Reeder
-  mas install 1176895641  # Spark
-  mas install 1063996724  # Tyme 2
-else
-	cecho "App Store login not complete. Skipping installing App Store Apps" $red
+  echo "Installing apps from the App Store..."
+
+  ### find app ids with: mas search "app name"
+  brew install mas
+
+  ### Mas login is currently broken on mojave. See:
+  ### Login manually for now.
+
+  cecho "Need to log in to App Store manually to install apps with mas...." $red
+  echo "Opening App Store. Please login."
+  open "/Applications/App Store.app"
+  echo "Is app store login complete.(y/n)? "
+  read response
+  if [ "$response" != "${response#[Yy]}" ]
+  then
+  	mas install 425424353   # The Unarchiver
+  	mas install 937984704   # Amphetamine
+  	mas install 407963104   # Pixelmator
+  	mas install 429449079   # Patterns
+  	mas install 1384080005  # Tweetbot
+    mas install 880001334   # Reeder
+    mas install 1176895641  # Spark
+    mas install 1063996724  # Tyme 2
+  else
+  	cecho "App Store login not complete. Skipping installing App Store Apps" $red
+  fi
 fi
 
 ###############################################################################
@@ -362,16 +345,6 @@ defaults -currentHost write com.apple.ImageCapture disableHotPlug -bool true
 defaults write com.apple.dock persistent-apps -array "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/App Store.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Safari.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/iTunes.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Xcode.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Sublime Text.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/iTerm.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Paw.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Tower.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Transmit.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Sketch.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Tweetbot.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Spark.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Messages.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Slack.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/Reeder.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>" "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/System Preferences.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
 
 killall Dock
-
-###############################################################################
-# Restore Settings                                                            #
-###############################################################################
-
-echo -n "Login to Synology Drive. Enter (y) once the Sync folder has downloaded."
-read response
-if [ "$response" != "${response#[Yy]}" ] ;then
-    mackup restore -f
-fi
 
 
 echo ""
