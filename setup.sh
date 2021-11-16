@@ -172,12 +172,14 @@ if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
   brew cask install sublime-text
   brew cask install sketch
   brew cask install transmit
+  brew install --cask xcodes
 
 
   ### Development
   brew install postgresql
   brew install redis
   brew install carthage
+  brew install evandcoleman/tap/scipio
 
 
   ### Command line tools - install new ones, update others to latest version
@@ -193,7 +195,7 @@ if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
 
 
   ### Productivity
-  brew cask install google-chrome
+  brew cask install brave-browser
   brew cask install alfred
   brew cask install nextcloud
   brew cask install flux
@@ -205,6 +207,7 @@ if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
   brew cask install istat-menus
   brew cask install fantastical
   brew cask install authy
+  brew cask install setapp
 
 
   ### Quicklook plugins https://github.com/sindresorhus/quick-look-plugins
@@ -219,6 +222,7 @@ if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
   brew cask install slack
   brew cask install zoomus
   brew cask install signal
+  brew cask install discord
 
 
   ### Music and Video
@@ -256,9 +260,17 @@ if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
   	mas install 407963104   # Pixelmator
   	mas install 429449079   # Patterns
   	mas install 1384080005  # Tweetbot
-    mas install 880001334   # Reeder
+    mas install 1449412482  # Reeder
     mas install 1176895641  # Spark
     mas install 1063996724  # Tyme 2
+    mas install 1523347474  # Buildwatch
+    mas install 1381004916  # Discovery
+    mas install 1544743900  # Hush
+    mas install 1303222628  # Paprika
+    mas install 1388020431  # DevCleaner
+    mas install 1514075262  # Pi Stats
+    mas install 924726344   # Deliveries
+    mas install 955297617   # CodeRunner
   else
   	cecho "App Store login not complete. Skipping installing App Store Apps" $red
   fi
