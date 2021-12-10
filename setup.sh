@@ -78,7 +78,7 @@ fi
 # Latest brew, install brew cask
 brew upgrade
 brew update
-brew tap caskroom/cask
+brew tap homebrew/cask
 brew tap homebrew/cask-drivers
 
 
@@ -165,13 +165,13 @@ if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
   brew cask install --appdir="/Applications" ${apps[@]}
 
   ### Developer Tools
-  brew cask install iterm2
-  brew cask install paw
-  brew cask install tower
-  brew cask install charles
-  brew cask install sublime-text
-  brew cask install sketch
-  brew cask install transmit
+  brew install --cask iterm2
+  brew install --cask paw
+  brew install --cask tower
+  brew install --cask charles
+  brew install --cask sublime-text
+  brew install --cask sketch
+  brew install --cask transmit
   brew install --cask xcodes
 
 
@@ -191,42 +191,42 @@ if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
 
 
   ### Writing
-  brew cask install macdown
+  brew install --cask macdown
 
 
   ### Productivity
-  brew cask install brave-browser
-  brew cask install alfred
-  brew cask install nextcloud
-  brew cask install flux
-  brew cask install bettertouchtool
-  brew cask install 1password
-  brew cask install bartender
-  brew cask install rescuetime
-  brew cask install viscosity
-  brew cask install istat-menus
-  brew cask install fantastical
-  brew cask install authy
-  brew cask install setapp
+  brew install --cask brave-browser
+  brew install --cask alfred
+  brew install --cask nextcloud
+  brew install --cask flux
+  brew install --cask bettertouchtool
+  brew install --cask 1password
+  brew install --cask bartender
+  brew install --cask rescuetime
+  brew install --cask viscosity
+  brew install --cask istat-menus
+  brew install --cask fantastical
+  brew install --cask authy
+  brew install --cask setapp
 
 
   ### Quicklook plugins https://github.com/sindresorhus/quick-look-plugins
-  brew cask install qlcolorcode # syntax highlighting in preview
-  brew cask install qlstephen  # preview plaintext files without extension
-  brew cask install qlmarkdown  # preview markdown files
-  brew cask install quicklook-json  # preview json files
-  brew cask install quicklook-csv  # preview csvs
+  brew install --cask qlcolorcode # syntax highlighting in preview
+  brew install --cask qlstephen  # preview plaintext files without extension
+  brew install --cask qlmarkdown  # preview markdown files
+  brew install --cask quicklook-json  # preview json files
+  brew install --cask quicklook-csv  # preview csvs
 
 
   ### Chat / Video Conference
-  brew cask install slack
-  brew cask install zoomus
-  brew cask install signal
-  brew cask install discord
+  brew install --cask slack
+  brew install --cask zoomus
+  brew install --cask signal
+  brew install --cask discord
 
 
   ### Music and Video
-  brew cask install vlc
+  brew install --cask vlc
 
 
   ### Run Brew Cleanup
